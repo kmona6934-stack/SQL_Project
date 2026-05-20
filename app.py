@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
 # إعدادات الصفحة الاحترافية
 st.set_page_config(page_title="SuperStore SQL Analytics", page_icon="📊", layout="wide")
@@ -10,25 +11,43 @@ st.set_page_config(page_title="SuperStore SQL Analytics", page_icon="📊", layo
 st.title("📊 SuperStore Customer Segmentation Dashboard")
 st.markdown("This dashboard executes your **SQL Queries** live to segment customers based on their sales volume.")
 
-# 1. تحميل الداتا مباشرة عبر رابط جيت هاب الخام لضمان الاستقرار وعدم حدوث أخطاء
+# 1. تحميل الداتا بأكثر طريقة مستقرة وآمنة للسيرفرات
 @st.cache_data
 def load_data():
-    try:
-        url = "https://raw.githubusercontent.com/kmona6934-stack/SQL_Project/main/Superstore_Data_with_Sales_Agent.csv"
-        df = pd.read_csv(url)
-        return df
-    except Exception as e:
-        st.error(f"❌ خطأ في الاتصال بملف البيانات عبر الإنترنت: {e}")
+    # اسم الملف المعتمد في الفولدر
+    file_name = "Superstore_Data_with_Sales_Agent.csv"
+    
+    # التأكد أولاً من وجود الملف في الفولدر قبل القراءة
+    if os.path.exists(file_name):
+        try:
+            df = pd.read_csv(file_name)
+            return df
+        except Exception as e:
+            st.error(f"❌ حدث خطأ أثناء قراءة الملف المحلي: {e}")
+            return None
+    else:
+        # حل بديل ذكي: لو السيرفر مغير المسار، يبحث عن أي ملف CSV متوفر
+        csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
+        if csv_files:
+            try:
+                df = pd.read_csv(csv_files[0])
+                return df
+            except:
+                pass
+        st.error("❌ لم نتمكن من العثور على ملف البيانات المستهدف في المستودع. تأكدي من وجود الملف في الفولدر الرئيسي.")
         return None
 
 df = load_data()
 
 if df is not None:
+    # تنظيف أسماء الأعمدة لتجنب مشاكل المسافات في الـ SQL
     df.columns = [c.replace(' ', '_') for c in df.columns]
     
+    # 2. بناء قاعدة بيانات SQL مؤقتة في الذاكرة
     conn = sqlite3.connect(':memory:')
     df.to_sql('Superstore_Data', conn, index=False, if_exists='replace')
     
+    # 3. استعلام الـ SQL بتاعك بالظبط
     sql_query = """
     WITH CustomerSales AS (
         SELECT 
@@ -49,6 +68,7 @@ if df is not None:
     try:
         segmented_data = pd.read_sql_query(sql_query, conn)
         
+        # --- قسم الـ KPIs (المؤشرات الرئيسية) ---
         total_customers = len(segmented_data)
         vip_count = len(segmented_data[segmented_data['Customer_Level'] == 'VIP Customer'])
         total_sales_sum = segmented_data['Total_Sales'].sum()
@@ -60,6 +80,7 @@ if df is not None:
         
         st.markdown("---")
         
+        # --- قسم الأشكال البيانية ---
         col_left, col_right = st.columns(2)
         
         with col_left:
@@ -81,6 +102,7 @@ if df is not None:
             ax2.axis('equal')  
             st.pyplot(fig2)
             
+        # --- قسم الفلترة التفاعلية ---
         st.markdown("---")
         st.subheader("🔍 Deep Dive into Customer Levels")
         selected_level = st.selectbox("Filter Table by Segment:", ['All', 'VIP Customer', 'Medium Customer', 'Normal Customer'])
