@@ -4,24 +4,22 @@ import sqlite3
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# إعدادات الصفحة الاحترافية
 st.set_page_config(page_title="SuperStore SQL Analytics", page_icon="📊", layout="wide")
 
 st.title("📊 SuperStore Customer Segmentation Dashboard")
 st.markdown("This dashboard executes your **SQL Queries** live to segment customers based on their sales volume.")
 
+# 1. تحميل الداتا مباشرة عبر رابط جيت هاب الخام لضمان الاستقرار وعدم حدوث أخطاء
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv("Superstore_Data_with_Sales_Agent.csv")
+        url = "https://raw.githubusercontent.com/kmona6934-stack/SQL_Project/main/Superstore_Data_with_Sales_Agent.csv"
+        df = pd.read_csv(url)
         return df
     except Exception as e:
-        import os
-        csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
-        if csv_files:
-            return pd.read_csv(csv_files[0])
-        else:
-            st.error(f"❌ لم نجد ملف الداتا الـ CSV. تأكدي من وجوده في نفس الفولدر. الخطأ: {e}")
-            return None
+        st.error(f"❌ خطأ في الاتصال بملف البيانات عبر الإنترنت: {e}")
+        return None
 
 df = load_data()
 
@@ -67,7 +65,7 @@ if df is not None:
         with col_left:
             st.subheader("📊 Customers Distribution per Segment")
             fig, ax = plt.subplots(figsize=(8, 4.5))
-            colors = ['#cbd5e1', '#3b82f6', '#deff9a'] # ألوان متناسقة واحترافية
+            colors = ['#cbd5e1', '#3b82f6', '#deff9a'] 
             sns.countplot(data=segmented_data, x='Customer_Level', palette=colors, 
                           order=['Normal Customer', 'Medium Customer', 'VIP Customer'], ax=ax)
             ax.set_ylabel("Number of Customers")
