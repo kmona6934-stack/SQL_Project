@@ -3,7 +3,8 @@
 An end-to-end data analytics project using **Advanced SQL Queries** and **Python (Streamlit)** to analyze retail transactions, perform data cleaning, and engineer a dynamic customer segmentation model.
 
 ## 🚀 Live Dashboard
-*The live interactive application will be deployed here soon via Streamlit Share.*
+You can interact with the live dashboard directly here: 
+👉 **[Click Here to Open the Live Dashboard](https://sqlproject-fp5astcjybfrglsyvxi5dn.streamlit.app/)**
 
 ---
 
@@ -26,6 +27,7 @@ Before building visual assets, a strict SQL pipeline was executed to ensure abso
 
 ### 2. Analytical Segmentation Logic
 Leveraged complex conditional logic (`CASE WHEN`) grouped by unique customer signatures to build a structural analytical view:
+
 ```sql
 CREATE VIEW Customers_Levels AS 
 SELECT 
